@@ -1,0 +1,243 @@
+3. DETAILED DESIGN DOCUMENT (DDD)
+The DDD further refines the architecture into concrete design models and specifications for implementation.
+3.1 MID-LEVEL DESIGN MODELS
+This section provides a high-level view of each layer, its static structure, and module responsibilities.
+3.1.1 Static Class Diagram (Mid-Level View)
+Below is a simplified diagram showing how Controllers (API Layer) call Services (Business Logic Layer), which then interact with the Data Access Layer (Repositories, Context, Unit of Work) and the Models (Entities and DTOs).
+Figure 3-1 Layers interactions diagram 
+
+Key Points
+•	API Layer (Controllers Folder): Exposes endpoints and processes incoming HTTP requests.
+•	Business Logic Layer (Service Folder): Implements business logic, validation, and orchestration.
+•	Data Access Layer (DataAccess Folder): Responsible for database connectivity (Context), Repository and Unit of Work patterns.
+
+3.1.2 Mid-Level Responsibilities
+Below is a table describing the main responsibilities of each module within your architecture:
+Layer	Folder	Responsibilities
+API Layer	Controllers	AuthorController: CRUD operations for authors
+BookController: Book endpoints (create, update, list, etc.)
+CategoryController: Category management
+EventController: Event scheduling/management
+PublisherController: Publisher CRUD
+ReviewRatingController: Review and rating endpoints
+WishlistController: Manage user wishlists
+Business Logic Layer	Services + IServices, DTOs	AccountService: Business logic for authentication/authorization tasks
+AuthorService: Author domain logic (linking books, etc.)
+BookService: Book-specific business rules (validation, sorting, etc.)
+CategoryService: Category creation, retrieval, etc.EventService: Logic for book-related events (signings, readings)
+PublisherService: Publisher domain rules
+ReviewRatingService: Manages user reviews and ratings logic
+WishlistService: User wishlist creation, retrieval, updates
+DTOs: Data Transfer Objects used to exchange data between layers
+Data Access	Context, Repository, UnitOfWork,
+Entities	Context: EF Core DbContext for database connectivity
+Repository: Generic or specialized repository classes for CRUD operations
+UnitOfWork: Ensures transaction consistency across multiple repository operations
+Entities: Domain objects (Book, Author, Publisher, Review, Rating, Wishlist, etc.) that map to DB tables
+
+
+3.1.3 Business Logic Layer Design (Static Model)
+The mid-level model for the book management module details classes and interactions.
+Figure 3-2 Mid-Level Business Logic Layer UML Class Diagram (Book Service Example) 
+Service Implementation Details:
+
+```csharp:BookService.cs
+public class BookService : IBookService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IImageUploadService _imageUploadService;
+
+        public BookService(IUnitOfWork unitOfWork, IImageUploadService imageUploadService)
+        {
+            _unitOfWork = unitOfWork;
+            _imageUploadService = imageUploadService;
+        }
+
+        public async Task<IEnumerable<BookReadDTO>> GetAllBooksAsync()
+        {
+            var books = await _unitOfWork.Repository<Book>()
+                .GetAll()
+                .Include(b => b.Author)
+                .Include(b => b.Publisher)
+                .Include(b => b.Category)
+                .ToListAsync();
+
+            return books.Select(b => new BookReadDTO
+            {
+                Id = b.Id,
+                Title = b.Title,
+                ISBN = b.ISBN,
+                Description = b.Description,
+                PublishedDate = b.PublishedDate,
+                CoverImageUrl = b.CoverImageUrl,
+                AuthorName = b.Author?.Name,
+                PublisherName = b.Publisher?.Name,
+                CategoryName = b.Category?.Name
+            });
+        }
+    // Additional specialized methods...
+}
+```
+3.1.4 Data Access Layer Design
+This model depicts the Repository and Unit of Work pattern:
+Figure 3-2 Mid-Level Data Access  Layer UML Class Diagram (Book Repository Example) 
+Example Code:
+public class BookRatingRepository<TEntity> : IBookRatingRepository<TEntity> where TEntity : class
+{
+    private readonly ApplicationDbContext _context;
+    private readonly DbSet<TEntity> _dbSet;
+
+    public BookRatingRepository(ApplicationDbContext context)
+    {
+        _context = context;
+        _dbSet = context.Set<TEntity>();
+    }
+
+    public IQueryable<TEntity> GetAll()
+    {
+        return _dbSet.AsNoTracking();
+    }
+
+    public IQueryable<TEntity> GetByCondition(Expression<Func<TEntity, bool>> expression)
+    {
+        return _dbSet.Where(expression).AsNoTracking();
+    }
+    // Additional repository methods...
+}
+
+3.2. Low-Level Design Models
+3.2.1 Package/Folder Organization
+Your project structure (as shown in the screenshot) is reflected in the following folder/package organization:
+FBookRating
+│
+├── Business_Logic_Layer        (Business Logic Layer)
+│   ├── Models/DTOs
+│   ├── Services
+│   │   ├── AuthorService.cs
+│   │   ├── BookService.cs
+│   │   ├── CategoryService.cs
+│   │   ├── EventService.cs
+│   │   ├── ImageUploadService.cs
+│   │   ├── NullEmailSender.cs
+│   │   ├── PublisherService.cs
+│   │   ├── ReviewRatingService.cs
+│   │   ├── WishlistService.cs
+│   ├──  WishlistService.cs
+│   ├── Business_Logic_Layer.csproj
+│   ├── ServiceCollectionExtensions.cs
+│
+├── Data_Access_Layer           (Data Access Layer)
+│   ├── Entities
+│   ├── Migrations
+│   ├── Repository
+│   ├── Seed
+│   ├── UnitOfWork
+│   ├── ApplicationDbContext.cs
+│   ├── Data_Access_Layer.csproj
+│
+├── Documentation
+│
+├── API_Layer             
+│   ├── Controllers
+│   ├── Properties
+│   ├── FBookRating.csproj
+│   ├── FBookRating.http
+│   ├── Program.cs
+│   ├── appsettings.Development.json
+│   ├── appsettings.json
+│…
+
+The project structure is organized into distinct layers, ensuring separation of concerns and promoting modularity. The key folders and their respective responsibilities are as follows:
+•	Business_Logic_Layer: Handles core business logic and operations, including services like BookService.cs and AuthorService.cs, and data transfer objects (DTOs).
+•	Data_Access_Layer: Manages data access through entity definitions, repositories, unit of work, and database context (e.g., ApplicationDbContext.cs).
+•	API_Layer: Contains API controllers and configurations for handling client requests and integrating with the business logic layer. Key components include Program.cs and appsettings.json.
+This modular structure helps in organizing the code, ensuring scalability, and making maintenance easier by separating concerns between the different layers of the application.
+3.2.2. Documentation for AddBusinessServices Extension Method (Mid-level)
+The AddBusinessServices extension method simplifies the setup of core services in an ASP.NET Core application. It registers the ApplicationDbContext with a SQL Server connection string from the configuration, sets up the IUnitOfWork to manage database transactions, and registers business services such as IBookService and BookService to handle business logic for books. This approach centralizes service configuration, allowing for easy extension with new services as the project grows while maintaining modularity and separation of concerns. This helps maintain the three-layer architecture constrains.
+
+
+3.2.3 Operation Specifications (Example: ReviewRatingService)
+Class: ReviewRatingService
+Location: FBookRating/Service/ReviewRatingService.cs
+Implements: IReviewRatingService
+Operation 1: AddReviewAsync(ReviewRatingCreateDTO reviewRatingDTO, string userId)
+•	Purpose: Adds a new review and rating for a book from a user.
+•	Signature:
+public async Task AddReviewAsync(ReviewRatingCreateDTO reviewRatingDTO, string userId)
+•	Preconditions:
+o	reviewRatingDTO must contain valid BookId, Score (1–5), and ReviewText fields.
+o	The user is authorized to post reviews.
+•	Postconditions:
+o	A new ReviewRating entity is created and stored in the database.
+o	The method returns a success status.
+•	Exceptions:
+o	Throws ArgumentException if Score is outside the 1–5 range.
+o	Throws ReviewCreationException if database operation fails.
+•	Algorithm/Flow:
+o	Validate DTO (ensure valid score and book ID).
+o	Map reviewRatingDTO to ReviewRating entity.
+o	Call Repository: UnitOfWork.Repository<ReviewRating>().Create(reviewRating).
+o	Save changes: await _unitOfWork.Repository<ReviewRating>().SaveChangesAsync().
+Operation 2: GetReviewsForBookAsync(Guid bookId)
+•	Purpose: Retrieves all reviews and ratings for a specific book.
+•	Signature:
+public async Task<IEnumerable<ReviewRatingReadDTO>> GetReviewsForBookAsync(Guid bookId)
+•	Preconditions:
+o	bookId must exist in the system.
+•	Postconditions:
+o	Returns a list of ReviewRatingReadDTO objects for the specified book.
+•	Algorithm/Flow:
+o	Query Repository: UnitOfWork.Repository<ReviewRating>().GetByCondition(r => r.BookId == bookId).
+o	Map each ReviewRating entity to ReviewRatingReadDTO.
+o	Return the list of ReviewRatingReadDTO.
+Operation 3: GetAverageRatingForBookAsync(Guid bookId)
+•	Purpose: Retrieves the average rating for a specific book.
+•	Signature:
+public async Task<double> GetAverageRatingForBookAsync(Guid bookId)
+•	Preconditions:
+o	bookId must exist in the system.
+•	Postconditions:
+o	Returns the average score (or 0.0 if no ratings exist).
+•	Algorithm/Flow:
+o	Query Repository: UnitOfWork.Repository<ReviewRating>().GetByCondition(r => r.BookId == bookId).
+o	Select and calculate the average score for the reviews.
+o	Return the average rating.
+
+3.3 Mapping Between Models
+This section shows how the conceptual models from your System Architecture Document (SAD) map to the actual classes and interfaces in your code.
+Conceptual Model	API Layer (Controllers)	Business Logic Layer	Data Access Layer
+Book Management	BookController	IBookService / BookService	UnitOfWork.Repository<Book>() in GenericRepository<Book>
+Review & Rating	ReviewRatingController	IReviewRatingService / ReviewRatingService	UnitOfWork.Repository<ReviewRating>()
+Authors & Publishers	AuthorController, PublisherController	AuthorService, PublisherService	UnitOfWork.Repository<Author>(), UnitOfWork.Repository<Publisher>()
+Events	EventController	EventService	UnitOfWork.Repository<Event>()
+Wishlists	WishlistController	WishlistService	UnitOfWork.Repository<Wishlist>()
+•	DTOs in Models/DTOs serve as data carriers between Controllers and Services.
+•	Entities in Models/Entities represent the domain model used by the repositories for persistence.	
+
+3.5. Detailed Design Rationale
+3.5.1 Separation of Concerns
+1.	API Layer:
+o	The Controllers handle request parsing, routing, and basic response formatting.
+o	They delegate complex operations (e.g., creating a review, editing a book) to the Business Logic Layer.
+2.	Business Logic Layer:
+o	Implements business logic, such as validating rating ranges, ensuring user permissions, and orchestrating multiple repository calls.
+o	Uses UnitOfWork for atomic transactions across different repositories.
+3.	Data Access Layer:
+o	Context (EF Core DbContext) handles database connections.
+o	Repository classes encapsulate CRUD operations, keeping queries and data logic consistent.
+o	UnitOfWork ensures that changes made in a single operation are committed or rolled back together.
+3.5.2 Maintainability & Scalability
+•	Layered Architecture: Each layer can evolve independently (e.g., switching from EF Core to another ORM or splitting the Business Logic Layer into microservices).
+•	Repository Pattern: Simplifies data access changes and unit testing.
+•	DTO Pattern: Decouples internal entity structures from external clients, making it safer to change the domain model without breaking the API.
+3.5.3 Performance & Security
+•	Performance:
+o	EF Core optimizations (e.g., lazy loading, proper indexing, caching if needed) ensure efficient queries.
+o	Business Logic Layer handles pagination and filtering to reduce large payloads.
+•	Security:
+o	Auth0 enforce authentication/authorization.
+o	Validations in the Business Logic Layer protect from invalid data.
+o	The UnitOfWork approach helps avoid partial commits and maintains consistency.
+
+
+

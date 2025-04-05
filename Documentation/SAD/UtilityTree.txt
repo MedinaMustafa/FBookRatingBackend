@@ -1,5 +1,6 @@
 2.9 EVALUATION SCENARIOS (UTILITY TREE)
- 
+  
+
 2.9.1. Detailed Scenario: New Users Can Register and Log In Within 2 Minutes
 Profile: Usability
 Scenario Weight: High
@@ -17,24 +18,23 @@ Flow of Events:
 1.	Navigation:
 o	The new user accesses the registration page via the website's home page or a direct link.
 2.	Input Registration Data:
-o	The user fills in mandatory fields such as username, password, email, and selects a role (user or admin if applicable).
+o	The user fills in mandatory fields such as username, password, email
 3.	Submission and API Processing:
-o	The user submits the registration form.
-o	The API Layer receives the request, validates input, and passes the data to the Service Layer.
+o	The user logs in through Auth0, which authenticates the user and issues a JWT token.
+o	The client includes this token in the Authorization header when making API requests.
+o	Upon receiving a request, the API Layer (Controller):Validates the presence and correctness of the JWT using middleware (AddAuthentication and AddJwtBearer).
+o	If the token is valid, the request proceeds to the service.
+o	The Business Logic Layer processes the request (e.g., creates a new user or stores a rating) and interacts with the Data Access Layer for persistence.
 4.	Business Logic Execution:
-o	The Service Layer checks for data integrity, applies business rules (e.g., ensuring unique usernames), and prepares the data for persistence.
+o	The Business Logic Layer checks for data integrity, applies business rules (e.g., ensuring unique usernames), and prepares the data for persistence.
 5.	Data Persistence:
 o	The Data Access Layer stores the new user information in the database and returns a confirmation.
-6.	User Confirmation and Redirection:
-o	A confirmation message is generated, and the new user is notified via email or an on-screen message.
-o	The user is redirected to the login page.
-7.	Login Process:
+6.	Login Process:
 o	The user enters the registered credentials.
-o	The API Layer handles the login request, calling the Service Layer for authentication.
+o	The Auth0 handles the login request.
 o	Upon successful verification, a JWT token is issued, and the user is logged in.
 Postconditions:
 •	The user’s data is saved in the system.
-•	A confirmation (email or on-screen) is sent to the user.
 •	The user successfully logs in and gains access to the system.
 Non-Functional Requirements:
 •	Time Constraint: The entire registration and login process must be completed within 2 minutes.
