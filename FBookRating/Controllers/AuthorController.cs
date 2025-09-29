@@ -9,7 +9,7 @@ namespace FBookRating.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    // [Authorize]
     public class AuthorController : ControllerBase
     {
         private readonly IAuthorService _authorService;
@@ -20,6 +20,7 @@ namespace FBookRating.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllAuthors()
         {
             var authors = await _authorService.GetAllAuthorsAsync();

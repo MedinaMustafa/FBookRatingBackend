@@ -9,7 +9,7 @@ namespace FBookRating.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    // [Authorize]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -37,6 +37,7 @@ namespace FBookRating.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddCategory([FromBody] CategoryCreateDTO categoryCreateDTO)
         {
             await _categoryService.AddCategoryAsync(categoryCreateDTO);
@@ -45,6 +46,7 @@ namespace FBookRating.Controllers
 
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] CategoryUpdateDTO categoryUpdateDTO)
         {
             await _categoryService.UpdateCategoryAsync(id, categoryUpdateDTO);
@@ -52,6 +54,7 @@ namespace FBookRating.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
             await _categoryService.DeleteCategoryAsync(id);

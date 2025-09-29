@@ -49,5 +49,21 @@ namespace FBookRating.Controllers
             await _wishlistService.RemoveBookFromWishlistAsync(wishlistId, bookId);
             return NoContent();
         }
+
+        [HttpDelete("{wishlistId}")]
+        public async Task<IActionResult> DeleteWishlist(Guid wishlistId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Console.WriteLine($"DeleteWishlist controller called with wishlistId: {wishlistId}, userId: {userId}");
+            
+            if (string.IsNullOrEmpty(userId))
+            {
+                Console.WriteLine("User ID is null or empty");
+                return Unauthorized("User not authenticated");
+            }
+            
+            await _wishlistService.DeleteWishlistAsync(wishlistId, userId);
+            return Ok("Wishlist deleted successfully.");
+        }
     }
 }
