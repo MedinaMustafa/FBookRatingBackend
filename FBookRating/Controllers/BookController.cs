@@ -20,6 +20,7 @@ namespace FBookRating.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllBooks()
         {
             var books = await _bookService.GetAllBooksAsync();
@@ -33,6 +34,14 @@ namespace FBookRating.Controllers
             var book = await _bookService.GetBookByIdAsync(id);
             if (book == null) return NotFound();
             return Ok(book);
+        }
+
+        [HttpGet("category/{categoryId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetBooksByCategory(Guid categoryId)
+        {
+            var books = await _bookService.GetBooksByCategoryAsync(categoryId);
+            return Ok(books);
         }
 
         [HttpPost]

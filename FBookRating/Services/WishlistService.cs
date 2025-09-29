@@ -82,5 +82,36 @@ namespace FBookRating.Services
                 await _unitOfWork.Repository<WishlistBook>().SaveChangesAsync();
             }
         }
+
+        public async Task DeleteWishlistAsync(Guid wishlistId, string userId)
+        {
+            Console.WriteLine($"DeleteWishlistAsync called with wishlistId: {wishlistId}, userId: {userId}");
+            
+            var wishlist = await _unitOfWork.Repository<Wishlist>()
+                .GetByCondition(w => w.Id == wishlistId && w.UserId == userId)
+                .FirstOrDefaultAsync();
+
+            Console.WriteLine($"Found wishlist: {wishlist != null}");
+
+            if (wishlist == null)
+            {
+                // Let's also check if the wishlist exists at all
+                var anyWishlist = await _unitOfWork.Repository<Wishlist>()
+                    .GetByCondition(w => w.Id == wishlistId)
+                    .FirstOrDefaultAsync();
+                
+                Console.WriteLine($"Wishlist exists: {anyWishlist != null}");
+                if (anyWishlist != null)
+                {
+                    Console.WriteLine($"Wishlist owner: {anyWishlist.UserId}, Requesting user: {userId}");
+                }
+                
+                throw new Exception("Wishlist not found or you don't have permission to delete it.");
+            }
+
+            _unitOfWork.Repository<Wishlist>().Delete(wishlist);
+            await _unitOfWork.Repository<Wishlist>().SaveChangesAsync();
+            Console.WriteLine("Wishlist deleted successfully");
+        }
     }
 }

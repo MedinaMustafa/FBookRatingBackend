@@ -7,6 +7,7 @@ namespace FBookRating.Services.IServices
     {
         Task<IEnumerable<BookReadDTO>> GetAllBooksAsync();
         Task<BookReadDTO> GetBookByIdAsync(Guid id);
+        Task<IEnumerable<BookReadDTO>> GetBooksByCategoryAsync(Guid categoryId);
         Task AddBookAsync(BookCreateDTO bookCreateDTO);
         Task UpdateBookAsync(Guid id, BookUpdateDTO bookUpdateDTO);
         Task DeleteBookAsync(Guid id);

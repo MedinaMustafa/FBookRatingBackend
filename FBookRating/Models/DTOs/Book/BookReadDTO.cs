@@ -8,8 +8,15 @@
         public string Description { get; set; }
         public DateTime PublishedDate { get; set; }
         public string CoverImageUrl { get; set; }
-        public string AuthorName { get; set; } // For displaying the author's name
-        public string PublisherName { get; set; } // For displaying the publisher's name
-        public string CategoryName { get; set; } // For displaying the category's name
+        
+        // Display names for UI
+        public string AuthorName { get; set; }
+        public string PublisherName { get; set; }
+        public string CategoryName { get; set; }
+        
+        // IDs for editing
+        public Guid CategoryId { get; set; }
+        public Guid? AuthorId { get; set; }
+        public Guid? PublisherId { get; set; }
     }
 }
