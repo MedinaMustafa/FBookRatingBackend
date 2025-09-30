@@ -35,6 +35,9 @@ namespace FBookRating.Services
 
         public async Task AddReviewAsync(ReviewRatingCreateDTO reviewRatingDTO, string userId)
         {
+            // Ensure user exists in the database before creating review
+            await EnsureUserExistsAsync(userId);
+
             var reviewRating = new ReviewRating
             {
                 Score = reviewRatingDTO.Score,
@@ -45,6 +48,28 @@ namespace FBookRating.Services
 
             _unitOfWork.Repository<ReviewRating>().Create(reviewRating);
             await _unitOfWork.Repository<ReviewRating>().SaveChangesAsync();
+        }
+
+        private async Task EnsureUserExistsAsync(string userId)
+        {
+            var userExists = await _unitOfWork.Repository<ApplicationUser>()
+                .GetByCondition(u => u.Id == userId)
+                .AnyAsync();
+
+            if (!userExists)
+            {
+                // Create the user record if it doesn't exist
+                var user = new ApplicationUser
+                {
+                    Id = userId,
+                    UserName = userId, // Use userId as username for now
+                    Email = null, // Will be updated later if needed
+                    DisplayName = null
+                };
+
+                _unitOfWork.Repository<ApplicationUser>().Create(user);
+                await _unitOfWork.Repository<ApplicationUser>().SaveChangesAsync();
+            }
         }
 
         public async Task<double> GetAverageRatingForBookAsync(Guid bookId)
