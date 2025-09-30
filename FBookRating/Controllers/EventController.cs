@@ -9,7 +9,7 @@ namespace FBookRating.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    // [Authorize]
     public class EventController : ControllerBase
     {
         private readonly IEventService _eventService;
@@ -20,6 +20,7 @@ namespace FBookRating.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllEvents()
         {
             var events = await _eventService.GetAllEventsAsync();

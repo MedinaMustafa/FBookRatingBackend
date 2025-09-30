@@ -9,9 +9,7 @@ namespace FBookRating.Services.IServices
         Task<AuthorReadDTO> GetAuthorByIdAsync(Guid id);
         Task AddAuthorAsync(AuthorCreateDTO authorDTO);
 
-        /*
-        Task UpdateAuthorAsync(int id, Author author);
-        Task DeleteAuthorAsync(int id);
-        */
+        Task UpdateAuthorAsync(Guid id, AuthorUpdateDTO authorUpdateDTO);
+        Task DeleteAuthorAsync(Guid id);
     }
 }

@@ -21,6 +21,7 @@ namespace FBookRating.Controllers
         }
 
         [HttpGet("book/{bookId}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetReviewsForBook(Guid bookId)
         {
             var reviews = await _reviewRatingService.GetReviewsForBookAsync(bookId);
@@ -36,6 +37,7 @@ namespace FBookRating.Controllers
         }
 
         [HttpGet("book/{bookId}/average")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAverageRatingForBook(Guid bookId)
         {
             var averageRating = await _reviewRatingService.GetAverageRatingForBookAsync(bookId);

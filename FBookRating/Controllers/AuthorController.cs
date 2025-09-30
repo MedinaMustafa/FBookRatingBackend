@@ -39,26 +39,21 @@ namespace FBookRating.Controllers
         public async Task<IActionResult> AddAuthor([FromBody] AuthorCreateDTO authorDTO)
         {
             await _authorService.AddAuthorAsync(authorDTO);
-            return NoContent();
+            return Ok("Author created successfully.");
         }
 
-        /*
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAuthor(int id, [FromBody] Author author)
+        public async Task<IActionResult> UpdateAuthor(Guid id, [FromBody] AuthorUpdateDTO authorUpdateDTO)
         {
-            if (id != author.Id) return BadRequest("ID mismatch");
-            await _authorService.UpdateAuthorAsync(author);
-            return NoContent();
+            await _authorService.UpdateAuthorAsync(id, authorUpdateDTO);
+            return Ok("Author updated successfully.");
         }
-        
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAuthor(int id)
+        public async Task<IActionResult> DeleteAuthor(Guid id)
         {
             await _authorService.DeleteAuthorAsync(id);
-            return NoContent();
+            return Ok("Author deleted successfully.");
         }
-
-        */
     }
 }

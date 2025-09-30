@@ -72,16 +72,18 @@ namespace FBookRating.Services
         /// 
 
 
-        /*
-        public async Task UpdateAuthorAsync(int id, Author author)
+        /// <summary>
+        /// Update an existing author.
+        /// </summary>
+        public async Task UpdateAuthorAsync(Guid id, AuthorUpdateDTO authorUpdateDTO)
         {
-            var existingAuthor = await GetAuthorByIdAsync(id);
+            var existingAuthor = await _unitOfWork.Repository<Author>().GetByCondition(a => a.Id == id).FirstOrDefaultAsync();
             if (existingAuthor == null) throw new Exception("Author not found.");
 
             // Update only the fields you want to modify
-            existingAuthor.Name = author.Name;
-            existingAuthor.Biography = author.Biography;
-            existingAuthor.BirthDate = author.BirthDate;
+            existingAuthor.Name = authorUpdateDTO.Name;
+            existingAuthor.Biography = authorUpdateDTO.Biography;
+            existingAuthor.BirthDate = authorUpdateDTO.BirthDate;
 
             _unitOfWork.Repository<Author>().Update(existingAuthor);
             await _unitOfWork.Repository<Author>().SaveChangesAsync();
@@ -90,15 +92,14 @@ namespace FBookRating.Services
         /// <summary>
         /// Delete an author.
         /// </summary>
-        public async Task DeleteAuthorAsync(int id)
+        public async Task DeleteAuthorAsync(Guid id)
         {
-            var author = await GetAuthorByIdAsync(id);
+            var author = await _unitOfWork.Repository<Author>().GetByCondition(a => a.Id == id).FirstOrDefaultAsync();
             if (author != null)
             {
                 _unitOfWork.Repository<Author>().Delete(author);
                 await _unitOfWork.Repository<Author>().SaveChangesAsync();
             }
         }
-        */
     }
 }
