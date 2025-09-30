@@ -40,6 +40,9 @@ namespace FBookRating.Services
 
         public async Task AddWishlistAsync(WishlistCreateDTO wishlistDTO, string userId)
         {
+            // Ensure user exists in the database before creating wishlist
+            await EnsureUserExistsAsync(userId);
+
             var wishlist = new Wishlist
             {
                 Name = wishlistDTO.Name,
@@ -48,6 +51,28 @@ namespace FBookRating.Services
 
             _unitOfWork.Repository<Wishlist>().Create(wishlist);
             await _unitOfWork.Repository<Wishlist>().SaveChangesAsync();
+        }
+
+        private async Task EnsureUserExistsAsync(string userId)
+        {
+            var userExists = await _unitOfWork.Repository<ApplicationUser>()
+                .GetByCondition(u => u.Id == userId)
+                .AnyAsync();
+
+            if (!userExists)
+            {
+                // Create the user record if it doesn't exist
+                var user = new ApplicationUser
+                {
+                    Id = userId,
+                    UserName = userId, // Use userId as username for now
+                    Email = null, // Will be updated later if needed
+                    DisplayName = null
+                };
+
+                _unitOfWork.Repository<ApplicationUser>().Create(user);
+                await _unitOfWork.Repository<ApplicationUser>().SaveChangesAsync();
+            }
         }
 
         public async Task AddBookToWishlistAsync(Guid wishlistId, Guid bookId)
